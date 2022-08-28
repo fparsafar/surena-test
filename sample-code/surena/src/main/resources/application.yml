@@ -4,25 +4,54 @@ server:
 logging:
   level:
     root: info
-#
 spring:
+  security:
+    ignored: /**
+    basic:
+      enable: false
   mvc:
     pathmatch:
-      matching-strategy: ant_path_matcher
-  datasource:
-    url: jdbc:h2:mem:mydb
-    username: sa
-    password: password
-    driverClassName: org.h2.Driver
-  h2:
-    console:
-      enabled: true
+       matching-strategy: ant_path_matcher
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
+    database-platform: org.hibernate.dialect.Oracle12cDialect
+    database: ORACLE
+    hibernate:
+      ddl-auto: update
+
+  datasource:
+    url:
+    username:
+    password:
+    hikari:
+      connection-timeout: 60000
+      maximum-pool-size: 1000
+      minimum-idle: 950
+  task:
+    execution:
+      pool:
+        maxSize: 10
+        queue-capacity: 100
+
+
+#
+#spring:
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ant_path_matcher
+#  datasource:
+#    url: jdbc:h2:mem:mydb
+#    username: sa
+#    password: password
+#    driverClassName: org.h2.Driver
+#  h2:
+#    console:
+#      enabled: true
+#  jpa:
+#    database-platform: org.hibernate.dialect.H2Dialect
+#    properties:
+#      hibernate:
+#        show_sql: true
+#        format_sql: true
 #
 #spring:
 #  h2:

@@ -6,6 +6,7 @@ import ir.surena.sample.dto.CreateUserDTO;
 import ir.surena.sample.dto.UpdateDTO;
 import ir.surena.sample.dto.UserDTO;
 import ir.surena.sample.exception.NotValidRequestException;
+import ir.surena.sample.exception.SenderException;
 import ir.surena.sample.exception.UserNotFoundException;
 import ir.surena.sample.mapper.CreateDTOMapper;
 import ir.surena.sample.mapper.UserDTOMapper;
@@ -13,13 +14,16 @@ import ir.surena.sample.repository.jpa.UserRepository;
 import ir.surena.sample.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Objects;
+
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 @Service
@@ -46,7 +50,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getByUserName(String username) throws UserNotFoundException {
+    public UserDTO getByUserName(String username) throws SenderException {
 
         log.debug("try to found user by username. username : '{}'", username);
 
@@ -63,11 +67,15 @@ public class UserServiceImpl implements UserService {
 
         log.debug("try to save user in database. username : '{}'", createUserDTO.getUsername());
 
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String encodedPassword = passwordEncoder.encode(createUserDTO.getPassword());
+        Base64 base64 = new Base64();
+        String encodedPassword = new String(base64.encode(createUserDTO.getPassword().getBytes()));
         createUserDTO.setPassword(encodedPassword);
 
-
+//        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        String encodedPassword = passwordEncoder.encode(createUserDTO.getPassword());
+//        createUserDTO.setPassword(encodedPassword);
+//
+//
         var saveUser = userRepository.save(createDTOMapper.convertToEntity(createUserDTO));
 
         log.debug("successfully save user in database. user : '{}'", saveUser);
@@ -75,7 +83,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UpdateDTO updateDTO) throws NotValidRequestException {
+    public void updateUser(UpdateDTO updateDTO) throws SenderException {
 
         log.info("try to update updateDTO : '{}'", updateDTO);
 
@@ -112,25 +120,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(ChangePasswordDTO changePasswordDTO) {
+    @Transactional
+    public void changePassword(ChangePasswordDTO changePasswordDTO) throws SenderException{
 
         log.info("try to update password. userId : '{}', password : '*****' ", changePasswordDTO.getUsername());
 
-        var user = userRepository.findByUsername(changePasswordDTO.getUsername());
-        if (user.isPresent()) {
+        var user = userRepository.findByUsername(changePasswordDTO.getUsername()).orElseThrow(UserNotFoundException::new);;
 
-            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            String encodedPassword = passwordEncoder.encode(changePasswordDTO.getOldPassword());
-            if (user.get().getPassword().equals(encodedPassword)) {
 
-                String newPasswordEncoded = passwordEncoder.encode(changePasswordDTO.getPasswordNew());
-                user.get().setPassword(newPasswordEncoded);
+            Base64 base64 = new Base64();
+            String encodedPassword = new String(base64.encode(changePasswordDTO.getOldPassword().getBytes()));
 
-            }
+            String decodedString = new String(base64.decode(user.getPassword().getBytes()));
+
+//            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//            String encodedPassword = passwordEncoder.encode(changePasswordDTO.getOldPassword());
+            if (user.getPassword().equals(encodedPassword)) {
+                String newPasswordEncoded = new String(base64.encode(changePasswordDTO.getPasswordNew().getBytes()));
+                user.setPassword(newPasswordEncoded);
+
 
         }
 
-        userRepository.save(user.get());
+        userRepository.save(user);
 
         log.info("successfully update password. username : '{}', password : '*****' , realmName : '{}'", changePasswordDTO.getUsername());
 
@@ -138,19 +150,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void removeById(Long id) {
+    public void removeById(Long id) throws SenderException {
 
         log.info("try to remove user . id : '{}'", id);
 
-        var user = userRepository.findById(id);
+        var user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
 
 
-        if (user.isPresent()) {
+        this.userRepository.delete(user);
+        log.debug(" remove user from db id : '{}'", id);
 
-            this.userRepository.delete(user.get());
-            log.debug(" remove user from db id : '{}'", id);
-
-        }
 
     }
 
@@ -172,19 +181,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void removeByUsername(String username) {
+    public void removeByUsername(String username) throws SenderException {
 
         log.info("try to remove user . username : '{}'", username);
 
-        var user = userRepository.findByUsername(username);
+        var user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
 
 
-        if (user.isPresent()) {
+        this.userRepository.delete(user);
+        log.debug(" remove user from db username : '{}'", username);
 
-            this.userRepository.delete(user.get());
-            log.debug(" remove user from db username : '{}'", username);
-
-        }
 
     }
 

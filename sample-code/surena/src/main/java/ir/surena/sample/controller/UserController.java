@@ -6,6 +6,7 @@ import ir.surena.sample.dto.CreateUserDTO;
 import ir.surena.sample.dto.UpdateDTO;
 import ir.surena.sample.dto.UserDTO;
 import ir.surena.sample.exception.NotValidRequestException;
+import ir.surena.sample.exception.SenderException;
 import ir.surena.sample.exception.UserNotFoundException;
 import ir.surena.sample.mapper.UserDTOMapper;
 import ir.surena.sample.service.UserService;
@@ -38,8 +39,8 @@ public class UserController {
     }
 
 
-    @GetMapping("/user/username}")
-    public ResponseEntity<UserDTO> getByUsername(@PathVariable String username) throws UserNotFoundException {
+    @GetMapping("/{username}")
+    public ResponseEntity<UserDTO> getByUsername(@PathVariable String username) throws SenderException {
 
         return ResponseEntity.ok(userservice.getByUserName(username));
     }
@@ -53,36 +54,36 @@ public class UserController {
 
     @PostMapping("/change-password")
     @ResponseStatus(value = HttpStatus.OK)
-    public void createUser(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+    public void changeUser(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) throws SenderException {
         userservice.changePassword(changePasswordDTO);
     }
 
 
-    @PutMapping("/user")
+    @PutMapping("/update")
     @ResponseStatus(value = HttpStatus.OK)
-    public void updatePost(@Valid @RequestBody UpdateDTO request) throws NotValidRequestException {
+    public void updatePost(@Valid @RequestBody UpdateDTO request) throws SenderException {
         userservice.updateUser(request);
     }
 
 
-    @DeleteMapping("/user/{id}")
+    @DeleteMapping("remove-by-id/{id}")
     @ResponseStatus(value = HttpStatus.OK)
-    public void removeById(@PathVariable Long id) {
+    public void removeById(@PathVariable Long id) throws SenderException {
         userservice.removeById(id);
     }
 
+//
+//    @DeleteMapping("/user/{externalId}")
+//    @ResponseStatus(value = HttpStatus.OK)
+//    public void removeByExternalId(@PathVariable String  externalId) {
+//        userservice.removeByExternalId(externalId);
+//    }
 
-    @DeleteMapping("/user/{externalId}")
+
+
+    @DeleteMapping("remove-by-username/{username}")
     @ResponseStatus(value = HttpStatus.OK)
-    public void removeByExternalId(@PathVariable String  externalId) {
-        userservice.removeByExternalId(externalId);
-    }
-
-
-
-    @DeleteMapping("/user/{username}")
-    @ResponseStatus(value = HttpStatus.OK)
-    public void removeByUsername(@PathVariable String username) {
+    public void removeByUsername(@PathVariable String username) throws SenderException {
         userservice.removeByUsername(username);
     }
 

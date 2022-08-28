@@ -16,8 +16,8 @@ public class ChangePasswordDTO {
     @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$")
     private String username;
 
-    @NotEmpty
-    private String password;
+//    @NotEmpty
+//    private String password;
 
     @NotEmpty
     private String passwordNew;

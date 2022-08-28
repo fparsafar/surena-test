@@ -18,7 +18,7 @@ public class RestExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Object> handleIllegalArgument(BusinessException ex) {
         logger.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ex.getMessage(), new HttpHeaders(), HttpStatus.NOT_EXTENDED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -30,7 +30,7 @@ public class RestExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleExceptions(Exception ex) {
         logger.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ex.getMessage(), new HttpHeaders(), HttpStatus.RESET_CONTENT);
     }
 
 }
